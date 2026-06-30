@@ -47,10 +47,21 @@ public class WebSecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable()) // Stateless APIs disable CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/token", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // 1. PERMIT the React "Front Door" and its compiled assets
+                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
+
+                        // 2. PERMIT the Handshake paths
+                        .requestMatchers("/api/auth/token", "/h2-console/**", "/error").permitAll()
+
+                        // 3. SECURE the Data paths
                         .requestMatchers("/api/rest/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/api/auth/token", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                        .requestMatchers("/api/rest/**").hasAnyRole("ADMIN", "USER")
+//                        .anyRequest().authenticated()
+//                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
                         jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
